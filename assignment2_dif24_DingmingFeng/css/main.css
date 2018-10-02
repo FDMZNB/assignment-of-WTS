@@ -1,0 +1,12 @@
+/*Dingming Feng*/
+*{text-align: center;}
+p {
+    font-family: 'Courier New', Courier, monospace; 
+    font-size: 2em; 
+    font-weight: bold; 
+}
+*{background-color: rgb(255, 255, 255);}
+.intro {
+	font-family: 'Courier New', Courier, monospace; 
+	font-size: 1em;
+}
