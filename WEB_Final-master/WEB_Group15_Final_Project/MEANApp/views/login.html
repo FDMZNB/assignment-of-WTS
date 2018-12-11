@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>login</title>
+        <link rel="stylesheet" type="text/css"  href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.css">
+        <link rel="stylesheet" type="text/css"  href="stylesheets/style.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+		<script>
+		loginModule = angular.module('login',[]);
+		loginModule.controller('loginController',function($scope,$http){
+			$scope.loginpost = function(){
+				var url = '/login';
+				var config = {
+						headers : {
+								'Accept': 'application/json'
+								}
+						}
+				var data = {
+					name: $scope.username,
+					password: $scope.password
+				}
+				$http.post(url,JSON.stringify(data), config).then(function (response){
+					$scope.postMsg= response.data;
+					if(!$scope.postMsg.Failed){
+						sessionStorage.setItem('userid', $scope.postMsg.user._id);
+						location.href = '/';
+					}
+				}, function (response){
+					$scope.postMsg = { 'Failed': true, 'message': "Error Status: " +  response.statusText};
+				});
+			}
+		})
+</script>
+    </head>
+    <body>
+        <div id="login" class="container login-container" ng-app = "login">
+            <div class="row">
+                <div class="col-md-6 login-form-1">
+                    <h3>New Customers</h3>
+                    <hr class="divider1">
+                    <p style="padding-left:20%">Don't have an account? Sign up here.</p>
+                    <form>
+                        <div class="form-group" style="padding-left:15%">
+                            <button class="btnSubmit"><a href="/signup" style="color:white">Create an Account</a></button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-6 login-form-2" ng-controller = "loginController">
+                    <h3>Return Customers</h3>
+                    <hr class="divider2">
+                    <p style="color:white;padding-left:12%">If you have an account with us, please log in here.</p>
+                    <form form class="form-horizontal" ng-submit = "loginpost()">
+                        <div class="form-group">
+                            <input ng-model="username" id="username" type="text" class="form-control" placeholder="User name *" value="" />
+                        </div>
+                        <div class="form-group">
+                            <input ng-model="password" id="pwd" type="password" class="form-control" placeholder="Password *" value="" />
+                        </div>
+                        <div class="form-group">
+                            <input type="submit" class="btnSubmit2" value="Login" />
+                        </div>
+                        <div class="form-group">
+
+                            <a href="#" class="ForgetPwd" value="Login">Forget Password?</a>
+                        </div>
+                        <div class="col-md-9 col-md-offset-3" ng-show = "postMsg.Failed">
+                            <div class="alert alert-danger">{{postMsg.message}}</div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

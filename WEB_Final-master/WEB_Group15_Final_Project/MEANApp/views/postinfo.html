@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <link rel="stylesheet" type="text/css"  href="stylesheets/style1.css">
+    <style>
+        table, th, td {
+                border: 1px solid black;
+                border-collapse: collapse;
+            }
+
+            ul.pagination {
+                display: inline-block;
+                padding: 0;
+                margin: 0;
+            }
+
+            ul.pagination li {display: inline;}
+
+            ul.pagination li a {
+                color: black;
+                float: left;
+                padding: 8px 16px;
+                text-decoration: none;
+            }
+            td, th {
+                border: 1px solid #dddddd;
+                text-align: left;
+                padding: 8px;
+            }
+
+            tr:nth-child(even) {
+                background-color: #dddddd;
+            }
+            body {
+                margin: 0;
+                height: 100%;
+            }
+            header{
+                text-align: center;
+            }
+
+            #navigator {
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+                width: 18%;
+                background-color: #0062cc;
+                position: fixed;
+                height: 100%;
+                overflow: auto;
+            }
+            section{
+                float:right;
+                width: 80%;
+                
+                height:100%;
+            }
+
+            li a{
+                display: block;
+                color: #000;
+                padding: 8px 16px;
+                text-decoration: none;
+            }
+
+            li a.active {
+                background-color: #4CAF50;
+                color: white;
+            }
+
+            li a:hover:not(.active) {
+                background-color: #555;
+                color: white;
+            }
+            #text{
+                text-align: left;
+            }
+        </style>            
+    <script>
+        var infomodule = angular.module('infoproduct', []);
+        infomodule.controller('infocontroller', ($scope, $http) => {
+			if (!sessionStorage.getItem('userid') || !(sessionStorage.getItem('userid')=="5c0d57ed255c402a3bde66fa")){
+				alert("If you are an administrator, please login with admin account. Otherwise you have no access to this section.");
+				location.href = '/';
+            }
+            else{
+                var url = "/posts";
+                $http.get(url).then((response) => {
+                    $scope.info = response.data;
+                }, (response) => {
+                    $scope.getErrMsg = "Error Status: " + response.statusText;
+                });
+                $scope.DeletePost=function(postID){
+                    if(confirm("You really want to delete this post?")){
+                        var url_1 = '/delete_post/' + postID;
+                        $http.delete(url_1).then(function (response){
+                                $scope.postMsg= response.data;
+                                if(!$scope.postMsg.Failed){
+                                    location.href = '/postinfo';
+                                }
+                            }, function (response){
+                                $scope.postMsg = { 'Failed': true, 'message': "Error Status: " +  response.statusText};
+                            });
+                    }             
+                }               
+            }
+        });
+
+    </script>
+
+</head>
+
+<body>
+    <div class="topnav" >
+        <a class="active" href="/"><b>Yixiao's Forum</b></a>
+        <a href="/userinfo">Admin</a>
+        <a href="/login">Login</a>
+        <a href="/account">My Account</a>
+        <a href="/" ng-click = "logout()">Logout</a>
+    </div>
+    <hr>
+
+    <header>
+        <h1><b>Post Info</b></h1>
+    </header>
+    <div id="navigator">
+        <ul>
+            <li><a style=" color:white;" href="postinfo">Post Info</a></li>
+            <li><a style=" color:white;" href="userinfo">Users Info</a></li>
+            <li><a style = "color:white;" href="/">Back to Forum Home</a>
+                
+        </ul>
+    </div>
+
+    <section>
+        <!-- <div id="text">
+            <input type="text">
+            <button type="button">search</button><br>
+        </div> -->
+        <div ng-app="infoproduct" ng-controller="infocontroller">
+            <table>
+                <tr>
+                    <th>title</th>
+                    <th>postcontent</th>
+                    <th>author</th>
+                    <th>created</th>
+                    <th>action</th>
+                </tr>
+                <tr ng-repeat="i in info">
+                    <td style="word-wrap:break-word;word-break:break-all;" width="300px";>{{i.title}}</td>
+                    <td style="word-wrap:break-word;word-break:break-all;" width="500px";>{{i.postcontent}}</td>
+                    <td>{{i.author}}</td>
+                    <td>{{i.created}}</td>
+                    <td><button ng-click="DeletePost(i._id)">delete</button></td>
+                </tr>
+
+            </table>
+        </div>
+        <!-- <div><button type="button">Save</button></div> -->
+        <!-- <ul class="pagination">
+            <li><a href="#">«</a></li>
+            <li><a href="#">1</a></li>
+            <li><a href="#">2</a></li>
+            <li><a href="#">3</a></li>
+            <li><a href="#">4</a></li>
+            <li><a href="#">5</a></li>
+            <li><a href="#">6</a></li>
+            <li><a href="#">7</a></li>
+            <li><a href="#">»</a></li>
+        </ul> -->
+    </section>
+
+
+</body>
+
+</html>

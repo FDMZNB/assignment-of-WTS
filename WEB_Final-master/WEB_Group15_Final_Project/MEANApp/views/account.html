@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>User Account</title>
+        <link rel="stylesheet" type="text/css"  href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.css">
+		<link rel="stylesheet" type="text/css"  href="stylesheets/style.css">
+		<!-- <link rel="stylesheet" type="text/css"  href="stylesheets/style1.css"> -->
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+	</head>
+	<script>
+		accountModule = angular.module('account',[]);
+		accountModule.controller('accountController',function($scope,$http){
+			
+			if (!sessionStorage.getItem('userid')){
+				alert("Please login");
+				location.href = '/login';
+			}else{
+				var url = '/accountctl/' + sessionStorage.getItem('userid');
+				$http.get(url).then(function (response){
+				$scope.user = response.data;
+				$scope.newemail = $scope.user.email;
+			}, function (response){
+				$scope.postMsg = { 'Failed': true, 'message': "Error Status: " +  response.statusText};
+			});
+			}				
+			//edit
+			$scope.passwordEdit = false;
+			$scope.editPassword = function(){
+				if(!$scope.passwordEdit){
+					$scope.passwordEdit = true;
+					document.getElementById("editPassword").innerHTML = "Cancel";
+				}else{
+					document.getElementById("editPassword").innerHTML = "Edit";
+					$scope.passwordEdit = false;
+					$scope.oldPassword = null;
+					$scope.newPassword = null;
+					$scope.comfirmPassword = null;
+					$scope.postMsg = null;
+				}	
+			}		
+			//edit information
+			$scope.accountpost= function(){			
+				var url = '/accountctl/' + sessionStorage.getItem('userid');
+				var config = {
+						headers : {
+								'Accept': 'application/json'
+								}
+				}
+				
+				var pwd = $scope.newPassword;
+				var postMsg = { 'Falied': false };
+				
+				if ($scope.passwordEdit){
+					if($scope.oldPassword != $scope.user.password){
+						postMsg = { 'Failed': true, 'message': 'The old password is not correct' };
+						pwd = $scope.user.password;
+					}else{
+						if ($scope.newPassword == null ||$scope.newPassword == ""){
+							postMsg = { 'Failed': true, 'message': 'New password cannnot be empty!' };
+							pwd = $scope.user.password;
+						}else if ($scope.newPassword != $scope.comfirmPassword){
+							postMsg = { 'Failed': true, 'message': 'Two password doesnot match!' };
+							pwd = $scope.user.password;
+						}else if ($scope.user.password == $scope.newPassword){
+							postMsg = { 'Failed': true, 'message': 'New password cannot be the same as the old password!' };
+							pwd = $scope.user.password;
+						}
+					}
+					
+					var data = {
+						name: $scope.user.name,
+						password: pwd,
+						email:$scope.newemail,
+					}
+					
+					if(postMsg.Failed){
+						$scope.postMsg = postMsg;
+					}else{
+						$http.post(url,JSON.stringify(data), config).then(function (response){
+							$scope.postMsg= response.data;
+							if(!$scope.postMsg.Failed){
+								$scope.oldPassword = "";
+								$scope.newPassword = "";
+								$scope.comfirmPassword = "";
+								$scope.newemail = $scope.postMsg.data.email;
+							}
+						}, function (response){
+							$scope.postMsg = { 'Failed': true, 'message': "Error Status: " +  response.statusText};
+						});
+					}
+				
+				}else{
+					var data = {
+						name: $scope.user.name,
+						password: $scope.user.password,
+						email:$scope.newemail,
+					}
+					
+					$http.post(url,JSON.stringify(data), config).then(function (response){
+						$scope.postMsg= response.data;
+						if(!$scope.postMsg.Failed){
+						$scope.newemail = $scope.postMsg.data.email;
+						}
+					}, function (response){
+						$scope.postMsg = "Error Status: " +  response.statusText;
+					});
+				}
+			}
+			
+			//logout
+			$scope.logout= function(){
+				sessionStorage.clear(); 
+				location.href = '/';
+			}
+			
+			//Delete
+			$scope.delete= function(){
+				if(confirm("You really want to delete this account?")){
+					var url = '/userctrl/' + sessionStorage.getItem('userid');
+					$http.delete(url).then(function (response){
+							$scope.postMsg= response.data;
+							if(!$scope.postMsg.Failed){
+								sessionStorage.clear(); 
+								location.href = '/';
+							}
+						}, function (response){
+							$scope.postMsg = { 'Failed': true, 'message': "Error Status: " +  response.statusText};
+						});
+				}
+			}
+		})
+	</script>
+    <body ng-app = "account" ng-controller = "accountController">
+
+		<!-- <div class="topnav">
+				<a class="active" href="/"><b>Yixiao's Forum</b></a>
+				<a href="/userinfo">Admin</a>
+				<a href="/login">Login</a>
+				<a href="/account">My Account</a>
+				<a href="/" ng-click = "logout()">Logout</a>
+			</div>
+			<hr> -->
+					
+        <div id="nav" class="container-fluid">
+            <nav class="navbar navbar-custom">
+                <div class="container">
+                    <ul class="nav navbar-nav">
+						<li><a class="nav-item nav-link" href="/">Home</a></li>
+						<br />
+						<div>
+							<button value="logout" ng-click = "logout()">logout</button>											
+						</div>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+
+        <div  id = "account" class = "container">
+			<div class = "col-md-8 col-md-offset-2" >
+			    <div class="section-title text-center center">
+                    <h2>My Account</h2>
+                    <hr class="divider1">
+                </div>
+				<form class="form-horizontal" name = "accountInfo">
+					<div class="form-group">
+                        <span class="col-sm-3 control-label">User Name:</span>
+                        <div class="col-sm-9">
+                            <h4>{{user.name}}</h4>
+                        </div>
+                    </div>
+					<div class="form-group">
+                        <span class="col-sm-3 control-label">Password:</span>
+                        <div class="col-sm-2">
+                            <button ng-model="editPassword" id = "editPassword" class="btnSubmit2" ng-click="editPassword()">Edit</button>
+                        </div>
+                    </div>
+					<div class="form-group" ng-show = "passwordEdit">
+                        <span class="col-sm-3 control-label">Old Password:<label>*</label></span>
+                        <div class="col-sm-9">
+							<input ng-model="oldPassword" class="form-control" type="password" name="oldPassword">
+                        </div>
+                    </div>
+					<div class="form-group" ng-show = "passwordEdit">
+                        <span class="col-sm-3 control-label">New Password:<label>*</label></span>
+                        <div class="col-sm-9">
+							<input ng-model="newPassword" class="form-control" type="password" name="newPassword">
+                        </div>
+                    </div>
+					<div class="form-group" ng-show = "passwordEdit">
+                        <span class="col-sm-3 control-label">Comfirm Password:<label>*</label></span>
+                        <div class="col-sm-9">
+							<input ng-model="comfirmPassword" class="form-control" type="password" name="comfirmPassword">
+                        </div>
+                    </div>
+					<div class="form-group">
+                        <span class="col-sm-3 control-label">Email Address:</span>
+                        <div class="col-sm-9">
+							<input ng-model="newemail" class="form-control" type="text" name="newemail" >
+                        </div>
+                    </div>
+					<div class="col-md-9 col-md-offset-3" ng-show = "postMsg.Failed">
+							<div class="alert alert-danger">{{postMsg.message}}</div>
+					</div>
+					<div class="col-md-9 col-md-offset-3" ng-show = "data.show">
+							<div class="alert alert-danger">{{data.message}}</div>
+					</div>
+                    <div class="form-group">
+                        <div class="col-md-5, col-md-offset-7">
+							<button type="submit" value="Save" class="btnSubmit" ng-click = "accountpost()">Save</button>
+							<div class="col-md-6">
+									<button value="delete" class="btnSubmit" ng-click = "delete()">Delete</button>
+							</div>
+                        </div>
+                    </div>
+				</form>
+			</div>
+		</div>
+
+    </body>
+</html>

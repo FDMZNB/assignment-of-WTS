@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <link rel="stylesheet" type="text/css"  href="stylesheets/style1.css">
+    <style>
+        table, th, td {
+                border: 1px solid black;
+                border-collapse: collapse;
+            }
+
+            ul.pagination {
+                display: inline-block;
+                padding: 0;
+                margin: 0;
+            }
+
+            ul.pagination li {display: inline;}
+
+            ul.pagination li a {
+                color: black;
+                float: left;
+                padding: 8px 16px;
+                text-decoration: none;
+            }
+            td, th {
+                border: 1px solid #dddddd;
+                text-align: left;
+                padding: 8px;
+            }
+
+            tr:nth-child(even) {
+                background-color: #dddddd;
+            }
+            body {
+                margin: 0;
+                height: 100%;
+            }
+            header{
+                text-align: center;
+            }
+
+            #navigator {
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+                width: 18%;
+                background-color: #0062cc;
+                position: fixed;
+                height: 100%;
+                overflow: auto;
+            }
+            section{
+                float:right;
+                width: 80%;
+                
+                height:100%;
+            }
+
+            li a{
+                display: block;
+                color: #000;
+                padding: 8px 16px;
+                text-decoration: none;
+            }
+
+            li a.active {
+                background-color: #4CAF50;
+                color: white;
+            }
+
+            li a:hover:not(.active) {
+                background-color: #555;
+                color: white;
+            }
+            #text{
+                text-align: left;
+            }
+        </style>
+    <script>
+        var infomodule = angular.module('infoproduct', []);
+        infomodule.controller('infocontroller', ($scope, $http) => {
+
+			if (!sessionStorage.getItem('userid') || !(sessionStorage.getItem('userid')=="5c0d57ed255c402a3bde66fa")){
+				alert("If you are an administrator, please login with admin account. Otherwise you have no access to this section.");
+				location.href = '/';
+            }
+            else{
+                var url = "/users";
+                $http.get(url).then((response) => {
+                    $scope.info = response.data;
+                }, (response) => {
+                    $scope.getErrMsg = "Error Status: " + response.statusText;
+                });
+                $scope.OpenUser=function(userID){
+                    sessionStorage.setItem('findUserid', userID);
+                    location.href = '/edit_user';
+                }
+            }
+           
+        });
+    </script>
+
+</head>
+
+<body ng-app = "infoproduct" ng-controller = "infocontroller">
+    <div class="topnav">
+        <a class="active" href="/"><b>Yixiao's Forum</b></a>
+        <a href="/userinfo">Admin</a>
+        <a href="/login">Login</a>
+        <a href="/account">My Account</a>
+        <a href="/" ng-click = "logout()">Logout</a>
+    </div>
+    <hr>
+    
+    <header>
+        <h1><b>Users Info</b></h1>
+    </header>
+    <div id="navigator">
+        <ul>
+                
+            <li> <a style ="color:white;" href="postinfo">Post Info</a></li>
+            <li><a style = "color:white;" href="userinfo">Users Info</a></li>
+            <li><a style = "color:white;" href="/">Back to Forum Home</a>
+
+        </ul>
+    </div>
+
+    <section>
+        <!-- <div id="text">
+            <input type="text">
+            <button type="button">search</button><br>
+        </div> -->
+        <div ng-app="infoproduct" ng-controller="infocontroller">
+            <table>
+                <tr>
+                    <th>User ID</th>
+                    <th>User</th>
+                    <!-- <th>Password</th> -->
+                    <th>e-mail</th>
+                    <th>black list</th>
+                    <th> action </th>
+                </tr>
+                <tr ng-repeat="i in info">
+                    <td style="word-wrap:break-word;word-break:break-all;" width="300px">{{i._id}}</td>
+                    
+                    <td style="word-wrap:break-word;word-break:break-all;" width="150px">{{i.name}}</td>
+                    <!-- <td style="word-wrap:break-word;word-break:break-all;" width="150px">{{i.password}}</td> -->
+                    <td style="word-wrap:break-word;word-break:break-all;" width="300px">{{i.email}}</td>
+                    <td style="word-wrap:break-word;word-break:break-all;" width="90px">{{i.ban_flag}}</td>
+                    
+                    <td style="word-wrap:break-word;word-break:break-all;" width="90px"><input type ="button" ng-click="OpenUser(i._id)" value="edit"></input></td>
+                </tr>
+
+            </table>
+        </div>
+        <!-- <div><button type="button">Save</button></div> -->
+        <!-- <ul class="pagination">
+            <li><a href="#">«</a></li>
+            <li><a href="#">1</a></li>
+            <li><a href="#">2</a></li>
+            <li><a href="#">3</a></li>
+            <li><a href="#">4</a></li>
+            <li><a href="#">5</a></li>
+            <li><a href="#">6</a></li>
+            <li><a href="#">7</a></li>
+            <li><a href="#">»</a></li>
+        </ul> -->
+    </section>
+
+
+</body>
+
+</html>

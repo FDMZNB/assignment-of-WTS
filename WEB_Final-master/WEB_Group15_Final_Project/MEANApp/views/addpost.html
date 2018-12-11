@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>login</title>
+        <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+        <link rel="stylesheet" type="text/css"  href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.css">
+        <!-- <link rel="stylesheet" type="text/css"  href="stylesheets/style1.css"> -->
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+        
+        <script>
+            addpostModule = angular.module('addpost',[]);
+            addpostModule.controller('AddPostCtrl',  function($scope, $http){
+                if (!sessionStorage.getItem('userid')){
+                    alert("Please login");
+                    location.href = '/login';
+                }else{
+                    //Get author's information
+                    var url_0 = '/addpost/'+ sessionStorage.getItem('userid');
+                    $http.get(url_0).then(function (response){
+                        $scope.user = response.data;  
+                    }, function (response){
+                        $scope.postMsg = { 'Failed': true, 'message': "Error Status: " +  response.statusText};
+                    });
+                    //Get format date
+                    $scope.getNowFormatDate=function(){
+                        var date = new Date();
+                        var seperator1 = "/";
+                        var seperator2 = ":";
+                        var month = date.getMonth() + 1;
+                        var strDate = date.getDate();
+                        if (month >= 1 && month <= 9) {
+                            month = "0" + month;
+                        }
+                        if (strDate >= 0 && strDate <= 9) {
+                            strDate = "0" + strDate;
+                        }
+                        var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+                                + " " + date.getHours() + seperator2 + date.getMinutes()
+                                + seperator2 + date.getSeconds();
+                        return currentdate;
+                    }
+                    //Submit post
+                    $scope.addpostpost = function(){
+                        var url = '/addpost';
+                        var config = {
+                                headers : {'Accept': 'application/json'}
+                                }
+                        var data = {
+                            title: $scope.newPostTitle,
+                            postcontent: $scope.newPostContent,
+                            author: $scope.user.name,
+                            // created: Date().toLocaleString(),
+                            created: $scope.getNowFormatDate(),
+                            // comments: 0,
+                            upvotes: 0
+                            // views: 0
+                        }
+                        //check blacklist
+                        if($scope.user.ban_flag==true){
+                            alert("Sorry to inform that you are in blacklist, please contact admin for help.");
+                            location.href = '/';
+                        }else{
+                        $http.post(url,JSON.stringify(data), config).then(function (response){
+                            $scope.postMsg= response.data;
+                            if(!$scope.postMsg.Failed){
+                                alert("Post published successfully");
+                                location.href = '/';
+                            }
+                        }, function (response){
+                            $scope.postMsg = { 'Failed': true, 'message': "Error Status: " +  response.statusText};
+                        });
+                        }
+                    }                        
+                }
+            });   
+            
+    $(document).ready(function(){
+	var lat,lon;
+	var degree;
+	var tmpShow;
+
+	if(navigator.geolocation){
+		navigator.geolocation.getCurrentPosition(function(position){
+	      	lat = position.coords.latitude;
+	      	lon = position.coords.longitude;
+	      	console.log(lat+"  "+lon);
+
+	      	var para = "https://free-api.heweather.com/v5/weather?city="+lon+","+lat+"&lang=en"+"&key=53153e2fed574ce19f5c089a1aacede0";
+	      	console.log(para);
+	      	$.getJSON(para,function(json){
+	      		var city= json["HeWeather5"][0]["basic"]["city"];
+	      		var cnty= json["HeWeather5"][0]["basic"]["cnty"];
+	      		var weatherNow = json["HeWeather5"][0]["now"]["cond"]["txt"];
+	      		degree=json["HeWeather5"][0]["now"]["tmp"];
+	      		tmpShow = degree;
+
+	      		var windShow = json["HeWeather5"][0]["now"]["wind"]["dir"]+" "+json["HeWeather5"][0]["now"]["wind"]["sc"];
+	      		//console.log(city);
+	      		$("#cityname").html(city+","+cnty);
+	      		$('.weather').html(weatherNow);
+	      		$(".tmp").html(tmpShow);
+	      		$(".wind").html(windShow);
+	      	});
+  		});
+	}
+
+	$(".btn-tmp-change").on("click",function(){
+		console.log($(".tmp").html());
+		if(degree == $(".tmp").html()){
+			$(".tmp").html(degree*1.8+32);
+			$(".tmp-kind").html("°F");
+			console.log(degree);
+			console.log($(".tmp").html());
+		}else{
+			$(".tmp").html(degree);
+			$(".tmp-kind").html("°C");
+		}
+	});
+
+});
+            
+    </script> 
+    </head>
+    <body ng-app = "addpost" ng-controller = "AddPostCtrl"> 
+        
+    <div class="container">
+        <div class="row">
+            <br /><br />
+            <div class="user-message">
+                <div >
+                    <span class="col-sm-3 control-label">Current User Name:</span>
+                    <h4>{{user.name}}</h4>
+                    <hr>
+                </div>
+            </div>
+        </div>
+    </div> 
+    <!-- POST FORM -->
+    <div id="form-container">
+        <div id = "addpost" class="container" >
+            <div class="row">
+                <form name="addpostform" ng-submit="addpostpost()" >
+                    <div class="col-md-12">
+                        <h1 class="page-title">Create a New Post</h1>
+                        <div class="form-group">
+                            <label for="newPostTitle">Post Title</label>
+                            <div class="text-counter"><span >{{maxTitleSize - addpostform.newPostTitle.$viewValue.length}}</span></div>
+                            <input type="text" class="form-control" ng-model="newPostTitle" name="newPostTitle" required ng-minlength="1" ng-maxlength="maxTitleSize" />
+                            <!-- <div class="error-container" ng-messages="addpostform.newPostTitle.$error" ng-if="addpostform.newPostTitle.$touched">
+                                <p ng-message="minlength">Your Post Title is too short.</p>
+                                <p ng-message="maxlength">Your Post Title is too long.</p>
+                                <p ng-message="required">Your Post Title is required.</p>
+                            </div> -->
+                        </div>
+                        <div class="form-group">
+                            <label for="newPostContent">Post Content</label>
+                            <div class="text-counter">{{maxPostContentSize - newPostContent.length}}</div>
+                            <textarea class="form-control" maxlength="{{maxPostContentSize}}" rows="4" cols="50" ng-model="newPostContent" name="newPostContent" ng-trim="false" required ng-maxlength="{{maxPostContentSize}}"></textarea>
+                            
+                            <!-- <div class="error-container" ng-messages="addpostform.newPostContent.$error" ng-if="addpostform.newPostContent.$touched">
+                                <p ng-message="minlength">Your Post Content is too short.</p>
+                                <p ng-message="maxlength">Your Post Content is too long.</p>
+                                <p ng-message="required">Post Content is required.</p>
+                            </div> -->
+                        </div>
+                        <button class="btn btn-primary" type="submit" ng-disabled="addpostform.$invalid"><i class="fa fa-plus-circle"></i> Add Post</button>
+                        <a href="/" class="btn btn-default"><i class="fa fa-chevron-left"></i> Go Back</a>
+                    </div>
+                </form>   
+            </div>
+        </div>
+    </div>
+    </body>

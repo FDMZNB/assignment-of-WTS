@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Sign Up</title>
+        <link rel="stylesheet" type="text/css"  href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.css">
+        <link rel="stylesheet" type="text/css"  href="stylesheets/style.css">
+        <!-- <link rel="stylesheet" type="text/css"  href="stylesheets/style1.css"> -->
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    	<script>
+		signupModule = angular.module('signup',[]);
+		signupModule.controller('signupController',function($scope,$http){
+			$scope.signuppost = function(){
+				if($scope.password1 != $scope.password2){
+					$scope.postMsg = { 'Failed': true, 'message': 'two password doesnot match!' };
+				}else{
+					var url = '/signup';
+					var config = {
+						headers : {
+								'Accept': 'application/json'
+								}
+							}
+					var data = {
+						name: $scope.username,
+						password: $scope.password1,
+						email:$scope.email,
+					}
+					$http.post(url,JSON.stringify(data), config).then(function (response){
+						$scope.postMsg= response.data;
+						if(!$scope.postMsg.Failed){
+							location.href = '/login';
+						}
+					}, function (response){
+						$scope.postMsg = { 'Failed': true, 'message': "Error Status: " +  response.statusText};
+					});
+				}
+			}
+		})
+	</script>
+	</head>
+    <body>
+        <div id="nav" class="container-fluid">
+            <nav class="navbar navbar-custom">
+                <div class="container">
+                    <ul class="nav navbar-nav">
+                        <li><a class="nav-item nav-link" href="/">Login</a></li>
+                        <li><a class="nav-item nav-link" href="/signup">Sign up</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+
+        <div id = "signup" class = "container" ng-app = "signup">
+            <div class = "col-md-8 col-md-offset-2" ng-controller = "signupController">
+                <div class="section-title text-center center">
+                    <form class="form-horizontal" role="form" ng-submit = "signuppost()">
+                        <h2>New Account</h2>
+                        <hr class="divider1">
+                        <div class="form-group">
+                            <span class="col-sm-4 control-label">User Name<label>*</label></span>
+                            <div class="col-sm-8">
+                                <input ng-model="username" class="form-control" type="text" required name="username" >
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <span class="col-sm-4 control-label">Password<label>*</label></span>
+                            <div class="col-sm-8">
+                                <input ng-model="password1" class="form-control" type="password" required name="password1" >
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <span class="col-sm-4 control-label">Confirm Password<label>*</label></span>
+                            <div class="col-sm-8">
+                                <input ng-model="password2" class="form-control" type="password" required name="password2" >
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <span class="col-sm-4 control-label">Email Address</span>
+                            <div class="col-sm-8">
+                                <input ng-model="email" class="form-control" type="text" name="email">
+                            </div>
+                        </div>
+						<div class="col-md-9 col-md-offset-3" ng-show = "postMsg.Failed">
+							<div class="alert alert-danger">{{postMsg.message}}</div>
+						</div>
+                        <div class="form-group">
+                            <div class="col-md-5, col-md-offset-7">
+                                <!-- <button type="reset" value="Reset" class="btn btn-default">Reset</button> -->
+                                <button type="submit" value="Submit" class="btnSubmit">Create Account</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>	
+                <div class="clearfix"> </div>
+            </div>
+        </div>
+
+    </body>
+</html>

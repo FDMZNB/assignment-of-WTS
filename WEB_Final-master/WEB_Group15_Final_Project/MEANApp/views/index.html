@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="allpost">
+
+<head>
+    <title>Forum</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css"  href="stylesheets/style1.css">
+    <script>
+        allpostModule = angular.module("allpost",[]);
+        allpostModule.controller('AllPostCtrl', function($scope,$http,$compile,$element){
+                var url = '/data';
+                $http.get(url).then(function(response){
+                    $scope.posts = response.data;
+                }, function(response){
+                    $scope.postMsg = { 'Failed': true, 'message': "Error Status: " +  response.statusText};
+                });
+
+                $scope.logout= function(){
+                    sessionStorage.clear(); 
+                    alert("You have logged out.");
+                    location.href = '/';
+                }
+                
+                $scope.OpenPost = function(postID) 
+                {
+                    sessionStorage.setItem('postid', postID);
+                    location.href = '/viewpost';
+                } 
+            }
+        );    
+
+
+            $(document).ready(function(){
+                var lat,lon;
+                var degree;
+                var tmpShow;
+                
+                if(navigator.geolocation){
+                    navigator.geolocation.getCurrentPosition(function(position){
+                          lat = position.coords.latitude;
+                          lon = position.coords.longitude;
+                          console.log(lat+"  "+lon);
+                
+                          var para = "https://free-api.heweather.com/v5/weather?city="+lon+","+lat+"&lang=en"+"&key=53153e2fed574ce19f5c089a1aacede0";
+                          console.log(para);
+                          $.getJSON(para,function(json){
+                              var city= json["HeWeather5"][0]["basic"]["city"];
+                              var cnty= json["HeWeather5"][0]["basic"]["cnty"];
+                              var weatherNow = json["HeWeather5"][0]["now"]["cond"]["txt"];
+                              degree=json["HeWeather5"][0]["now"]["tmp"];
+                              tmpShow = degree;
+                
+                              var windShow = json["HeWeather5"][0]["now"]["wind"]["dir"]+" "+json["HeWeather5"][0]["now"]["wind"]["sc"];
+                              //console.log(city);
+                              $("#cityname").html(city+","+cnty);
+                              $('.weather').html(weatherNow);
+                              $(".tmp").html(tmpShow);
+                              $(".wind").html(windShow);
+                          });
+                      });
+                }
+                
+                $(".btn-tmp-change").on("click",function(){
+                    console.log($(".tmp").html());
+                    if(degree == $(".tmp").html()){
+                        $(".tmp").html(degree*1.8+32);
+                        $(".tmp-kind").html("°F");
+                        console.log(degree);
+                        console.log($(".tmp").html());
+                    }else{
+                        $(".tmp").html(degree);
+                        $(".tmp-kind").html("°C");
+                    }
+                });
+                
+                });
+        </script>          
+
+</head>
+<body >            
+    <div class="topnav" ng-controller="AllPostCtrl">
+        <a class="active" href="/"><b>Yixiao's Forum</b></a>
+        <a href="/userinfo">Admin</a>
+        <a href="/login">Login</a>
+        <a href="/account">My Account</a>
+        <a href="/" ng-click = "logout()">Logout</a>
+    </div>
+    <hr>
+    <div class="container-fluid">
+        <div class="col-lg-1">
+        </div>
+        <div class="col-lg-8" >
+            <!-- <div>
+                <p class="sort">Sort by
+                    <select>  
+                        <option value="newest">Newest First</option>
+                        <option value="likes">Most Popular</option>
+                    </select></p>
+            </div> -->
+            <div id="need" ng-controller="AllPostCtrl">
+                <div class="card" ng-repeat="item in posts" ng-click="OpenPost(item._id)">
+                    <div class="cardcontainer">
+                        <h4><b>{{item.title}}</b></h4>
+                        <!-- <span class="col-sm-3 control-label" style="color:rgb(253, 195, 86);font-size: 12px">{{item.author}}</span>  -->
+                        <span class="col-sm-3 control-label" style="color:#0062cc;font-size: 13px">{{item.author}}</span>                     
+                        <p style="color:#0062cc;font-size: 12px">{{item.created}}</p>
+                        <p style="word-break:break-all; width:100%">{{item.postcontent}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-1">
+        </div>
+        <div class="col-lg-3">
+            <br>
+            <div class="filter">
+                    <button class="newpost"><a href="/addpost" style="color:white">Start a Post</a></button>
+            </div>
+            <br>
+            <div>
+                <iframe id="intro" src="http://localhost:4000" frameborder="0" style="width: 100%; height: 500px"></iframe>
+            </div>            
+            <iframe id="intro" src="/weather" frameborder="0" style="width: 100%; height: 300px"></iframe>
+
+        </div>
+                        
+        <div class="col-lg-1">
+        </div>
+    </div>
+ 
+    <br /><br /><br /><br /><br /><br />
+
+    <div class="footer">
+        <div class="col-md-4 col-md-offset-4">
+            <p>Copyright &copy; 2018 Yixiao Li @pitt</p>
+        </div>
+        Adminstrator contact: Dingming Feng&nbsp;&nbsp;
+        Email: dif24@pitt.com
+      </div>
+</body>
+</html>
